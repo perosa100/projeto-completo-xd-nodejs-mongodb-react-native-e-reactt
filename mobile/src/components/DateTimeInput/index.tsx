@@ -6,9 +6,8 @@ import {
   TextInput,
   Alert,
   Platform,
-  Button,
 } from 'react-native';
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import iconCalendar from '../../assets/calendar.png';
 import iconClock from '../../assets/clock.png';
@@ -24,37 +23,37 @@ const DateTimeInput: React.FC<Type> = ({ type, save, dated, hour }) => {
   const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
-  /*   if (type === 'date' && dated) {
-    setDateTime(format(new Date(date), 'dd/MM/yyyy'));
-  } */
-  /*  if (isPast(new Date(algo))) {
-    return Alert.alert('voce não pode voltar no passado');
-  } */
-  useEffect(() => {
-    if (type == 'date' && date) {
-      if (loading === true) {
-        setDateTime(format(new Date(date), 'dd/MM/yyyy'));
-        save(format(new Date(date), 'yyyy-MM-dd'));
-      }
-    }
-    if (type == 'time' && date) {
-      if (loading === true) {
-        setDateTime(format(new Date(date), 'HH:mm'));
-        save(format(new Date(date), 'HH:mm:ss'));
-      }
-    }
-  }, [loading]);
+  const [dateNow, setDateNow] = useState(new Date());
 
+  useEffect(() => {
+    if (type === 'date' && dated) {
+      setDateTime(format(new Date(dated), 'dd/MM/yyyy'));
+      save(format(new Date(dated), 'yyyy-MM-dd'));
+    }
+    if (type === 'time' && hour) {
+      setDateTime(format(new Date(hour), 'HH:mm'));
+      save(format(new Date(hour), 'HH:mm:ss'));
+    }
+  }, []);
   const onChange = (event: any, selectedDate: Date) => {
-    const currentDate = selectedDate || date;
+    const currentDate = selectedDate;
     setShow(Platform.OS === 'ios');
+
     if (event.type === 'dismissed') {
-      setLoading(false);
       setShow(false);
     } else {
-      setDate(currentDate);
-      setLoading(true);
+      if (type == 'date' && currentDate) {
+        setDateTime(format(new Date(currentDate), 'dd/MM/yyyy'));
+        save(format(new Date(currentDate), 'yyyy-MM-dd'));
+      }
+      if (type == 'time' && currentDate) {
+        if (currentDate < dateNow) {
+          Alert.alert('voce não pode voltar no passado');
+        } else {
+          setDateTime(format(new Date(currentDate), 'HH:mm'));
+          save(format(new Date(currentDate), 'HH:mm:ss'));
+        }
+      }
     }
   };
 
